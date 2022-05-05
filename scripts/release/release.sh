@@ -32,16 +32,17 @@ assert_current_branch() {
 }
 
 push_release_branch_and_tag() {
-  git push upstream "$(current_release_branch)" "$(current_version)"
+  log "$(current_release_branch)"
+  # git push upstream "$(current_release_branch)" "$(current_version)"
 }
 
 publish() {
   dist_tag="$1"
 
-  log "Publishing openzeppelin-solidity on npm"
+  log "Publishing viv-solidity on npm"
   npm publish --tag "$dist_tag" --otp "$(prompt_otp)"
 
-  log "Publishing @openzeppelin/contracts on npm"
+  log "Publishing @viv/contracts on npm"
   cd contracts
   env ALREADY_COMPILED= \
       npm publish --tag "$dist_tag" --otp "$(prompt_otp)"
@@ -49,8 +50,8 @@ publish() {
 
   if [[ "$dist_tag" == "latest" ]]; then
     otp="$(prompt_otp)"
-    npm dist-tag rm --otp "$otp" openzeppelin-solidity next
-    npm dist-tag rm --otp "$otp" @openzeppelin/contracts next
+    npm dist-tag rm --otp "$otp" viv-solidity next
+    npm dist-tag rm --otp "$otp" @viv/contracts next
   fi
 }
 
@@ -70,8 +71,8 @@ prompt_otp() {
 }
 
 environment_check() {
-  if ! git remote get-url upstream &> /dev/null; then
-    log "No 'upstream' remote found"
+  if ! git remote get-url origin &> /dev/null; then
+    log "No 'origin' remote found"
     exit 1
   fi
 
@@ -143,7 +144,7 @@ elif [[ "$*" == "final" ]]; then
 
   push_and_publish latest
 
-  npm deprecate 'openzeppelin-solidity@>=4.0.0' "This package is now published as @openzeppelin/contracts. Please change your dependency."
+  # npm deprecate 'viv-solidity@>=4.0.0' "This package is now published as @openzeppelin/contracts. Please change your dependency."
 
   log "Remember to merge the release branch into master and push upstream"
 

@@ -31,7 +31,7 @@ For example:
     import {
         abi as VIV_DAO_ABI,
         bytecode as VIV_DAO_BYTECODE,
-    } from '@viv/contracts/artifacts/artifacts/contracts/trades/VivDao.sol/VivDao.json'
+    } from '@viv/contracts/artifacts/contracts/trades/VivDao.sol/VivDao.json'
 ```
 This will ensure that you are testing against the same bytecode that is deployed to mainnet and public testnets, and all viv code will correctly interoperate with your local deployment.
 

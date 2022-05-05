@@ -2,8 +2,8 @@
 
 set -o errexit
 
-scripts/release/update-changelog-release-date.js
-scripts/release/synchronize-versions.js
-scripts/release/update-comment.js
+node scripts/release/update-changelog-release-date.js
+node scripts/release/synchronize-versions.js
+node scripts/release/update-comment.js
 
 oz-docs update-version

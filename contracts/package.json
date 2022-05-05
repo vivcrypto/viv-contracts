@@ -1,0 +1,32 @@
+{
+  "name": "@viv/contracts",
+  "description": "Secured transactions are based on Smart contracts",
+  "version": "1.0.0",
+  "files": [
+    "**/*.sol",
+    "/build/contracts/*.json",
+    "!/mocks/**/*"
+  ],
+  "scripts": {
+    "prepare": "bash ../scripts/prepare-contracts-package.sh",
+    "prepare-docs": "cd ..; npm run prepare-docs"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/vivcrypto/viv-contracts.git"
+  },
+  "keywords": [
+    "solidity",
+    "ethereum",
+    "smart",
+    "contracts",
+    "security",
+    "zeppelin"
+  ],
+  "author": "Viv Developer <maintainers@viv.com>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/vivcrypto/viv-contracts/issues"
+  },
+  "homepage": "https://viv.com/contracts/"
+}
