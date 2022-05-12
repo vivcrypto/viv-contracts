@@ -364,9 +364,8 @@ contract('VivTimer', function (accounts) {
           let times;
           let start;
           const penaltyAmount = deposit.mul(penaltyRate).divn(10000);
-          const newTradeAmount = value.add(penaltyAmount);
           // platform fee from deposit and value after the due date
-          const feeAmount = newTradeAmount.mul(feeRate).divn(10000);
+          const feeAmount = value.mul(feeRate).divn(10000);
 
           beforeEach(async function () {
             start = await time.latest();
@@ -398,7 +397,7 @@ contract('VivTimer', function (accounts) {
                 value,
                 penaltyAmount,
                 start.addn(ONE_DAY_SECONDS).addn(ONE_DAY_SECONDS),
-                { from: buyer, value: newTradeAmount },
+                { from: buyer, value: value.add(penaltyAmount) },
               ),
               'Transfer',
               {
@@ -673,45 +672,6 @@ contract('VivTimer', function (accounts) {
           });
         });
 
-        describe('When this transaction has ended', function () {
-          let values;
-          let times;
-          let newTrade;
-
-          beforeEach(async function () {
-            values = [10000];
-            times = [await time.latest()];
-            newTrade = await VivTimerMock.new();
-            await newTrade.purchase(
-              users,
-              values,
-              times,
-              tid,
-              penaltyRate,
-              feeRate,
-              value,
-              deposit,
-              { from: buyer, value: tradeAmount },
-            );
-          });
-
-          it('reverts', async function () {
-            await expectRevert(
-              newTrade.withdraw(
-                '0x',
-                '0x',
-                '0x',
-                withdrawAmount,
-                couponRate,
-                arbitrateFee,
-                tid,
-                '0x',
-                { from: seller, value: 0 },
-              ),
-              'VIV5505',
-            );
-          });
-        });
       });
 
       describe('When the coupon rate is not zero', function () {

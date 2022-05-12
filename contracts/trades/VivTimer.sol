@@ -52,6 +52,8 @@ contract VivTimer is Token {
 
     mapping(bytes => bool) _couponIds;
 
+    uint256 constant _INTERNAL_SECONDS = 86400;
+
     function getPayAmount(bytes calldata tid) external view returns (uint256 waitPayAmount, uint256 payedAmount) {
         Trade memory trade = _trades[tid];
         if (trade.current == trade.values.length) {
@@ -169,7 +171,6 @@ contract VivTimer is Token {
     ) internal {
         require(value > 0, "VIV0001");
         Trade storage trade = _trades[tid];
-        uint256 needPayment = value;
         if (trade.user.buyer == address(0)) {
             address seller = users[0];
             address platform = users[1];
@@ -204,8 +205,6 @@ contract VivTimer is Token {
             require(deposit >= totalPenalty.sub(trade.deposit.completedDeposit), "VIV5501");
             trade.deposit.historyPenalty = totalPenalty;
             trade.deposit.completedDeposit = trade.deposit.completedDeposit.add(deposit);
-            trade.deposit.withdrawedPenalty = trade.deposit.withdrawedPenalty.add(deposit);
-            needPayment = needPayment.add(deposit);
         }
 
         uint256 totalPayment = value.add(deposit);
@@ -245,13 +244,13 @@ contract VivTimer is Token {
         _transferFrom(trade.token, trade.user.buyer, address(this), totalPayment);
 
         // Pay to the platform
-        uint256 fee = needPayment.rate(trade.feeRate);
+        uint256 fee = value.rate(trade.feeRate);
         if (fee > 0) {
             _transfer(trade.token, trade.user.platform, fee);
         }
 
         // Pay to the seller
-        _transfer(trade.token, trade.user.seller, needPayment.sub(fee));
+        _transfer(trade.token, trade.user.seller, value.sub(fee));
 
         // Set the buyer's next payment period
         trade.current = i;
@@ -330,9 +329,7 @@ contract VivTimer is Token {
         require(trade.user.seller != address(0), "VIV5005");
         require(value > 0, "VIV0001");
         require(trade.user.seller == msg.sender || trade.user.buyer == msg.sender, "VIV5406");
-        // trade.current == trade.times.length means this transaction has ended
-        require(trade.current < trade.times.length, "VIV5505");
-
+        
         uint256 available = value.sub(arbitrateFee);
         uint256 fee = available.rate(trade.feeRate);
         // Calculate the discounted price when couponRate more than 0
@@ -348,45 +345,42 @@ contract VivTimer is Token {
         }
 
         bytes32 hashValue = ECDSA.toEthSignedMessageHash(abi.encode(value, arbitrateFee, tid));
-        require(
-            SignUtil.checkSign(
-                hashValue,
-                signedValue1,
-                signedValue2,
-                trade.user.buyer,
-                trade.user.seller,
-                trade.user.guarantor
-            ),
-            "VIV5006"
-        );
-
-        // normal withdraw when arbitrateFee == 0
         uint256 canWithdraw = 0;
-        if (arbitrateFee == 0) {
-            if (trade.user.seller == msg.sender) {
-                // The amount that the seller can withdraw is the number of days from the overdue date to the current day * deposit * daily penalty ratio
-                // The buyer is not overdue and cannot withdraw the deposit.
-                require(currentTime > trade.times[trade.current], "VIV5504");
-                uint256 totalPenalty = _getTotalPenalty(trade, currentTime);
-                canWithdraw = totalPenalty.sub(trade.deposit.withdrawedPenalty);
-                // If the penalty interest exceeds the deposit, the penalty interest is equal to the deposit
-                uint256 remainderDeposit = trade.deposit.deposit.add(trade.deposit.completedDeposit).sub(
-                    trade.deposit.withdrawedDeposit
-                );
-                if (totalPenalty > remainderDeposit) {
-                    canWithdraw = remainderDeposit.sub(trade.deposit.withdrawedPenalty);
-                }
-                trade.deposit.withdrawedPenalty = trade.deposit.withdrawedPenalty.add(value);
-            } else {
-                canWithdraw = trade
-                    .deposit
-                    .deposit
-                    .add(trade.deposit.completedDeposit)
-                    .sub(trade.deposit.withdrawedDeposit)
-                    .sub(trade.deposit.withdrawedPenalty);
-                trade.deposit.withdrawedDeposit = trade.deposit.withdrawedDeposit.add(value);
+        if (arbitrateFee == 0 && trade.user.seller == msg.sender) { 
+            require(
+                SignUtil.checkSign(
+                    hashValue,
+                    signedValue1,
+                    signedValue2,
+                    trade.user.buyer,
+                    trade.user.seller,
+                    trade.user.platform
+                ),
+                "VIV5006"
+            );
+            // The amount that the seller can withdraw is the number of days from the overdue date to the current day * deposit * daily penalty ratio
+            uint256 totalPenalty = _getTotalPenalty(trade, currentTime);
+            canWithdraw = totalPenalty.sub(trade.deposit.withdrawedPenalty);
+            // If the penalty interest exceeds the deposit, the penalty interest is equal to the deposit
+            uint256 remainderDeposit = trade.deposit.deposit.add(trade.deposit.completedDeposit).sub(
+                trade.deposit.withdrawedDeposit
+            );
+            if (totalPenalty > remainderDeposit) {
+                canWithdraw = remainderDeposit.sub(trade.deposit.withdrawedPenalty);
             }
+            trade.deposit.withdrawedPenalty = trade.deposit.withdrawedPenalty.add(value);
         } else {
+            require(
+                SignUtil.checkSign(
+                    hashValue,
+                    signedValue1,
+                    signedValue2,
+                    trade.user.buyer,
+                    trade.user.seller,
+                    trade.user.guarantor
+                ),
+                "VIV5006"
+            );
             canWithdraw = trade
                 .deposit
                 .deposit
@@ -448,7 +442,7 @@ contract VivTimer is Token {
         // If the user's repayment time exceeds the repayment date, the user needs to pay penalty interest
         if (trade.current < trade.times.length && currentTime > trade.times[trade.current]) {
             // 3600
-            uint256 overdueDays = currentTime.sub(trade.times[trade.current]).div(86400);
+            uint256 overdueDays = currentTime.sub(trade.times[trade.current]).div(_INTERNAL_SECONDS);
             uint256 penaltyAmount = overdueDays.mul(trade.deposit.deposit).rate(trade.penaltyRate);
             totalPenalty = totalPenalty.add(penaltyAmount);
         }

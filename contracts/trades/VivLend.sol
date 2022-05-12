@@ -101,6 +101,28 @@ contract VivLend is Token, IERC721Receiver {
         );
     }
 
+    function getWaitPay(bytes memory tid) 
+        public
+        view
+        returns ( 
+            uint256 needRepay)
+    {
+        Trade storage trade = _trades[tid];
+        if(trade.borrower == address(0)) {
+            return 0;
+        }
+
+        uint256 currentTime = block.timestamp;
+        needRepay = trade.target.value.add(trade.target.interest);
+        if (currentTime > trade.target.endDate) {
+            // 86400
+            uint256 overdueDays = currentTime.sub(trade.target.endDate).div(_OVER_DUE_HOURS);
+            uint256 penaltyAmount = overdueDays.mul(trade.target.interest).rate(trade.penaltyRate);
+            needRepay = needRepay.add(penaltyAmount);
+        }
+    }
+     
+
     event ReceviedNft(address indexed operator, address indexed from, uint256 indexed tokenId, bytes data);
 
     function onERC721Received(
