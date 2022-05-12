@@ -15,7 +15,7 @@ The seller can withdraw the installments several times according to the predeter
 Please note:
 > The amount the seller can withdraw in total is calculated based on the timetable and installment table uploaded into the smart contract. Installments can only be withdrawn after the specified dates.
 
-#### 2 Refund without dispute (the buyer applies for refund and the seller agrees to refund.)
+#### 2. Refund without dispute (the buyer applies for refund and the seller agrees to refund.)
 
 1) The seller initiates the transaction and sends the link to the buyer.
 2) The buyer pays (call the contract's “purchase” function) to the contract.
@@ -82,8 +82,8 @@ Parameters
 
 
 Please note:
-- 1) If paying through Ethereum, then one should make sure the wallet balance should not be less than the sum of the “values.” Choosing this payment method means that at the same time Ethereum will be transferred into the contract. In this case, msg.value should equal values.
-- 2) If paying through ERC20 tokens, then one should authorize the contract in advance, and the authorized amount should be no less than the sum of the “values.” When paying, the contract will call ERC20’s “transferFrom” function to deduct the payment amount.
+1) If paying through Ethereum, then one should make sure the wallet balance should not be less than the sum of the “values.” Choosing this payment method means that at the same time Ethereum will be transferred into the contract. In this case, msg.value should equal values.
+2) If paying through ERC20 tokens, then one should authorize the contract in advance, and the authorized amount should be no less than the sum of the “values.” When paying, the contract will call ERC20’s “transferFrom” function to deduct the payment amount.
 
 withdrawal methods
 parameters
@@ -106,7 +106,6 @@ Once the buyer applies for refund, from when he applies, the amounts left in the
 The seller can only withdraw the amounts that were unlocked before the buyer’s refund application.
 
 Parameters
-- bytes memory tid: 交易id
 - bytes memory tid: Transaction ID
 
 Please note:

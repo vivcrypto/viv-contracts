@@ -5,17 +5,17 @@ Auction contracts apply to auctions in cryptocurrency to make sure its fairness 
 #### Auction
 
 
-- 1) The initiator calls the “publish” function of the contract to launch an auction.
-- 2) The bidders call the “bidding” function of the contract to place bids.
-- 3) The initiator calls the “endAuction” function to end the auction. Except for the highest bidder, the funds of the rest will be refunded back via the coming route.
-- 4) The initiator ships the goods/services to the highest bidder.
-- 5) The highest bidder confirms receipt (agrees to pay to the initiator; signs to the transaction).
-- 6) The initiator calls the “withdraw” function of the contract to withdraw the payment.
+1) The initiator calls the “publish” function of the contract to launch an auction.
+2) The bidders call the “bidding” function of the contract to place bids.
+3) The initiator calls the “endAuction” function to end the auction. Except for the highest bidder, the funds of the rest will be refunded back via the coming route.
+4) The initiator ships the goods/services to the highest bidder.
+5) The highest bidder confirms receipt (agrees to pay to the initiator; signs to the transaction).
+6) The initiator calls the “withdraw” function of the contract to withdraw the payment.
 
 Please note:
 
-> - The bidders, except the highest bidder, can withdraw from the auction while it is still going on. By calling the “refund” function of the contract, the payment will be refunded via the coming route.
-> - If the highest bidder never confirms receipt of goods/services, after a certain period of time, the platform will automatically confirm the receipt and the initiator still can withdraw the payment.
+1) The bidders, except the highest bidder, can withdraw from the auction while it is still going on. By calling the “refund” function of the contract, the payment will be refunded via the coming route.
+2) If the highest bidder never confirms receipt of goods/services, after a certain period of time, the platform will automatically confirm the receipt and the initiator still can withdraw the payment.
 
 ### On contracts
 
