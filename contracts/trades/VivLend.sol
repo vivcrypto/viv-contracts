@@ -117,7 +117,7 @@ contract VivLend is Token, IERC721Receiver {
         if (currentTime > trade.target.endDate) {
             // 86400
             uint256 overdueDays = currentTime.sub(trade.target.endDate).div(_OVER_DUE_HOURS);
-            uint256 penaltyAmount = overdueDays.mul(trade.target.interest).rate(trade.penaltyRate);
+            uint256 penaltyAmount = overdueDays.rate(trade.penaltyRate);
             needRepay = needRepay.add(penaltyAmount);
         }
     }
@@ -213,19 +213,20 @@ contract VivLend is Token, IERC721Receiver {
         _checkTransferIn(trade.target.token, value);
 
         uint256 needRepay = trade.target.value.add(trade.target.interest);
+        uint256 penaltyAmount = 0;
         if (currentTime > trade.target.endDate) {
             // 86400
             uint256 overdueDays = currentTime.sub(trade.target.endDate).div(_OVER_DUE_HOURS);
-            uint256 penaltyAmount = overdueDays.mul(trade.target.interest).rate(trade.penaltyRate);
+            penaltyAmount = overdueDays.rate(trade.penaltyRate);
             needRepay = needRepay.add(penaltyAmount);
         }
 
         require(value >= needRepay, "VIV5604");
         _transferFrom(trade.target.token, msg.sender, address(this), value);
 
-        // Fees are charged only if the fee is less than the interest
+        // Fees are charged only if the fee is less than the interest and penalty.
         uint256 fee = needRepay.rate(trade.feeRate);
-        if (fee < trade.target.interest) {
+        if (fee < trade.target.interest.add(penaltyAmount)) {
             _transfer(trade.target.token, trade.platform, fee);
             _transfer(trade.target.token, trade.lender, value.sub(fee));
         } else {

@@ -26,41 +26,43 @@ Please note:
 Please note:
 > The amount the buyer can withdraw from the contract is the amount left in the contract by that time, which equals the amount the buyer paid at first minus the amount the seller had already withdrawn from the contract (If the seller had withdrawn any).
 
-#### 3. Arbitration I: support the buyer (the buyer asks for refund and the seller refuses; VIV platform or a third-party arbitrator arbitrates and rules in favor of the buyer.)
+#### 3. Arbitration I: support the buyer (the buyer asks for refund and the seller refuses; the arbitrator arbitrates and rules in favor of the buyer. The arbitrator could be the VIV platform or a pre-assigned third-party arbitrator.)
 
 1) The seller initiates the transaction and sends the link to the buyer.
 2) The buyer pays (call the contract's “purchase” function) to the contract.
 3) The buyer asks for refund (no matter the seller has shipped the good/service or not)
 4) The seller does not agree to a refund.
 5) The buyer calls for arbitration.
-6) VIV platform or a third party conducts the arbitration and chooses to support the buyer. (In other words, VIV platform or the third party signs the contract in favor of the buyer.)
+6) The arbitrator conducts the arbitration and chooses to support the buyer. (In other words, the arbitrator signs the contract in favor of the buyer.)
 7) The buyer withdraws the payment from the contract (call the contract's “withdraw” function); buyer signs before withdrawal as well. Two parties have signed and the withdrawal can be completed.
 
 Please note:
 > The amount the buyer can withdraw from the contract is the amount left in the contract by that time, which equals the amount the buyer paid at first minus the amount the seller had already withdrawn from the contract (If the seller had withdrawn any).
 
-#### 4. Arbitration II: support the seller (the buyer asks for refund and the seller refuses; VIV platform or a third-party arbitrator arbitrates and rules in favor of the seller.)
+#### 4. Arbitration II: support the seller (the buyer asks for refund and the seller refuses; the arbitrator arbitrates and rules in favor of the seller. The arbitrator could be the VIV platform or a pre-assigned third-party arbitrator.)
 
 1) The seller initiates the transaction and sends the link to the buyer.
 2) The buyer pays (call the contract's “purchase” function) to the contract.
 3) The buyer asks for refund (no matter the seller has shipped the good/service or not)
 4) The seller does not agree to a refund.
 5) The buyer calls for arbitration.
-6) VIV platform or a third party conducts the arbitration and chooses to support the seller. (In other words, VIV platform or the third party signs the contract in favor of the seller.)
+6) The arbitrator conducts the arbitration and chooses to support the seller. (In other words, VIV platform or the third party signs the contract in favor of the seller.)
 7) The seller withdraws the payment from the contract (call the contract's “withdraw” function); seller signs before withdrawal as well. Two parties have signed and the withdrawal can be completed.
 
 Please note:
 > The amount the seller can withdraw from the contract is the amount left in the contract by that time, which equals the amount the buyer paid at first minus the amount the seller had already withdrawn from the contract (If the seller had withdrawn any).
 
-#### 5. Arbitration III: support both buyer and seller, with the proportions of the payment they will receive determined (the buyer asks for refund and the seller refuses; VIV platform or a third-party arbitrator arbitrates and rules to split the payment between them.)
+#### 5. Arbitration III: support both buyer and seller, with the proportions of the payment they will receive determined (the buyer asks for refund and the seller refuses; The arbitrator arbitrates and rules to split the payment between them. The arbitrator could be the VIV platform or a pre-assigned third-party arbitrator.)
 
 1) The seller initiates the transaction and send the link to the buyer.
 2) The buyer pays (call the contract's “purchase” function) to the contract.
 3) The buyer asks for refund (no matter the seller has shipped the good/service or not)
 4) The seller does not agree to refund.
 5) The buyer calls for arbitration.
-6) VIV platform or a third party conducts the arbitration and chooses to split the payment between buyer and seller. (In other words, VIV platform or the third party signs the contract in favor of both parties.)
-7) Buyer or seller withdraws the payment from the contract (call the contract's “withdraw” function); buyer or seller signs before withdrawal. Two parties (buyer/seller and arbitrator) have signed and the withdrawal can be completed.
+6) VIV platform or a third party conducts the arbitration and chooses to split the payment between buyer and seller. (In other words, VIV platform or the third party signs the contract in favor of both parties.) In this case, the arbitrator offers two signatures, one to the buyer and one to the seller. (The arbitrator could be either the VIV platform or a pre-assigned third party.)
+7) The buyer withdraws from the contract (calls the “withdraw” function of the contract). In order to withdraw the partial fund, the buyer signs to the contract. In this case, both the buyer and the arbitrator have signed, and the buyer can withdraw.
+8) The seller withdraws from the contract (calls the “withdraw” function of the contract). In order to withdraw the partial fund, the seller signs to the contract. In this case, both the seller and the arbitrator have signed, and the seller can withdraw.
+
 
 Please note:
 > The amount the buyer and the seller can withdraw from the contract is the amount left in the contract by that time, which equals the amount the buyer paid at first minus the amount the seller had already withdrawn from the contract (If the seller had withdrawn any).
