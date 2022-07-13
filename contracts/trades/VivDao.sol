@@ -54,6 +54,8 @@ contract VivDao is Token, Ownable {
 
     address _platform;
 
+    uint256 constant _SACLE = 10000;
+
     /**
      * constructor
      * @param payToken The address of token to pay
@@ -100,7 +102,6 @@ contract VivDao is Token, Ownable {
         uint256 reserved,
         uint256 discount
     ) internal {
-        require(amount > 0, "VIV5201");
         _currentRound++;
         Target storage target = _targets[_currentRound];
         target.round = _currentRound;
@@ -182,8 +183,11 @@ contract VivDao is Token, Ownable {
         _transferFrom(trade.payToken, trade.buyer, address(this), trade.payValue);
 
         // 2) mint
-        // amount = value*exchange - value*exchange*discount/100
-        uint256 amount = value.mul(_exchange).sub(value.mul(_exchange).rate(currentTarget.discount));
+        // amount = value*exchange*(10000-discount)/10000
+        uint256 amount = value.mul(_exchange); 
+        for(uint i = 1; i <= _currentRound; i++ ) {
+            amount = amount.mul(_SACLE.sub(_targets[i].discount)).div(_SACLE);
+        }
         VivDaoToken(_daoToken).mint(amount);
 
         // 3) dao token tansfer to buyer

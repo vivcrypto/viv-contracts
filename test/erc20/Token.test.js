@@ -123,7 +123,7 @@ contract('Token', function (accounts) {
       describe('when the recipient is the zero address', function () {
         it('reverts', async function () {
           await expectRevert(this.token.transfer(ZERO_ADDRESS, ZERO_ADDRESS, initialSupply),
-            'Transaction reverted: function call failed to execute',
+            'Transaction reverted without a reason string',
           );
         });
       });

@@ -490,6 +490,7 @@ contract('VivLend', function (accounts) {
       });
 
       describe('When the repayment amount is insufficient', function () {
+        const newRepayAmount = repayAmount.subn(1);
         beforeEach(async function () {
           // Need to pay penalty interest
           repayDate = this.start.addn(86400 * 2);
@@ -497,9 +498,9 @@ contract('VivLend', function (accounts) {
 
         it('reverts', async function () {
           await expectRevert(
-            this.trade.repayInternal(repayAmount, tid, repayDate, {
+            this.trade.repayInternal(newRepayAmount, tid, repayDate, {
               from: borrower,
-              value: repayAmount,
+              value: newRepayAmount,
             }),
             'VIV5604',
           );

@@ -72,23 +72,6 @@ contract('VivDao', function (accounts) {
       });
     });
 
-    describe('When target is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          VivDao.new(
-            ZERO_ADDRESS,
-            exchange,
-            0,
-            reserved,
-            discount,
-            platform,
-            feeRate,
-            { from: owner },
-          ),
-          'VIV5201',
-        );
-      });
-    });
   });
 
   describe('purchase', function () {
@@ -621,15 +604,6 @@ contract('VivDao', function (accounts) {
         await expectRevert(
           this.trade.newRound(tradeAmount, reserved, discount, { from: buyer }),
           'Ownable: caller is not the owner',
-        );
-      });
-    });
-
-    describe('When target is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.newRound(0, reserved, discount, { from: owner }),
-          'VIV5201',
         );
       });
     });
