@@ -9,18 +9,9 @@
 
 - wallets
     - multi-signature wallet
-    - secure tansfer
-    - fund collection
 
 - transactions
     - one-time transaction
-    - installments
-    - recurring 
-    - auction
-    - DAO
-    - crowdfunding
-    - NFT lending
-    - trust fund
 
 ### Local deployment
 
@@ -29,22 +20,22 @@ In order to deploy this code to a local testnet, you should install the npm pack
 For example:
 ```
     import {
-        abi as VIV_DAO_ABI,
-        bytecode as VIV_DAO_BYTECODE,
-    } from '@viv/contracts/artifacts/contracts/trades/VivDao.sol/VivDao.json'
+        abi as VIV_NORMAL_ABI,
+        bytecode as VIV_NORMAL_BYTECODE,
+    } from '@viv/contracts/artifacts/contracts/trades/VivNormal.sol/VivNormal.json'
 ```
 This will ensure that you are testing against the same bytecode that is deployed to mainnet and public testnets, and all viv code will correctly interoperate with your local deployment.
 
 ### Using solidity interfaces
 
 ```
-import '@viv/contracts/trades/VivDao.sol';
+import '@viv/contracts/trades/VivNormal.sol';
 
 contract MyContract {
-  VivDao dao;
+  VivNormal trans;
 
-  function doSomethingWithDao() {
-    // dao.purchase;
+  function doSomethingWithNormal() {
+    // trans.purchase;
   }
 }
 ```
