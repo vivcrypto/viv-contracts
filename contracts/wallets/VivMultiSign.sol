@@ -2,7 +2,7 @@
 // Viv Contracts
 
 pragma solidity ^0.8.4;
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "../util/SignUtil.sol";
 
 /**
@@ -408,6 +408,9 @@ contract DayLimit {
  * Viv multi sign
  */
 contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
+
+    using SafeERC20 for IERC20;
+
     // Transaction structure to remember details of transaction lest it need be saved for a later call.
     struct Transaction {
         address to;
@@ -496,7 +499,7 @@ contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
                 payable(to).transfer(value);
                 emit Transfer(address(this), to, value);
             } else {
-                IERC20(token).transfer(to, value);
+                IERC20(token).safeTransfer(to, value);
             }
             return 0;
         }
@@ -529,7 +532,7 @@ contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
                 payable(_txs[operation].to).transfer(_txs[operation].value);
                 emit Transfer(address(this), _txs[operation].to, _txs[operation].value);
             } else {
-                IERC20(_txs[operation].token).transfer(_txs[operation].to, _txs[operation].value);
+                IERC20(_txs[operation].token).safeTransfer(_txs[operation].to, _txs[operation].value);
             }
             emit MultiTransact(msg.sender, operation, _txs[operation].value, _txs[operation].to, _txs[operation].data);
             delete _txs[operation];

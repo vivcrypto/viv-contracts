@@ -2,12 +2,15 @@
 // Viv Contracts
 
 pragma solidity ^0.8.4;
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 /**
  * Merge transfer functionality of Ethereum and tokens
  */
 contract Token {
+
+    using SafeERC20 for IERC20;
+
     /**
      * Notify When transfer happened
      * @param sender who sender
@@ -63,7 +66,7 @@ contract Token {
             payable(to).transfer(value);
             emit Transfer(address(this), to, value);
         } else {
-            IERC20(token).transfer(to, value);
+            IERC20(token).safeTransfer(to, value);
         }
     }
 
@@ -80,7 +83,7 @@ contract Token {
         uint256 value
     ) internal {
         if (token != address(0)) {
-            IERC20(token).transferFrom(from, to, value);
+            IERC20(token).safeTransferFrom(from, to, value);
         }
     }
 
