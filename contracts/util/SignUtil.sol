@@ -12,32 +12,32 @@ library SignUtil {
     /**
      * Verify signature
      * @param hashValue hash for sign
-     * @param signedValue1 signed by one of seller, buyer, guarantor
-     * @param signedValue2 signed by one of seller, buyer, guarantor
-     * @param buyer buyer
-     * @param seller seller
-     * @param guarantor guarantor
+     * @param signedValue1 signed by one of user1, user2, user3
+     * @param signedValue2 signed by one of user1, user2, user3
+     * @param user1 user1
+     * @param user2 user2
+     * @param user3 user3
      */
     function checkSign(
         bytes32 hashValue,
         bytes memory signedValue1,
         bytes memory signedValue2,
-        address buyer,
-        address seller,
-        address guarantor
+        address user1,
+        address user2,
+        address user3
     ) internal pure returns (bool) {
         // if sign1 equals sign2, return false
         if (_compareBytes(signedValue1, signedValue2)) {
             return false;
         }
 
-        // address must be one of seller, buyer, guarantor
+        // address must be one of user1, user2, user3
         address address1 = ECDSA.recover(hashValue, signedValue1);
-        if (address1 != seller && address1 != buyer && address1 != guarantor) {
+        if (address1 != user1 && address1 != user2 && address1 != user3) {
             return false;
         }
         address address2 = ECDSA.recover(hashValue, signedValue2);
-        if (address2 != seller && address2 != buyer && address2 != guarantor) {
+        if (address2 != user1 && address2 != user2 && address2 != user3) {
             return false;
         }
         return true;
@@ -46,30 +46,30 @@ library SignUtil {
     /**
      * Verify signature
      * @param hashValue hash for sign
-     * @param signedValue1 signed by one of seller, buyer, guarantor
-     * @param signedValue2 signed by one of seller, buyer, guarantor
-     * @param user buyer
-     * @param guarantor guarantor
+     * @param signedValue1 signed by one of user1, user2
+     * @param signedValue2 signed by one of user1, user2
+     * @param user1 user1
+     * @param user2 user2
      */
     function checkSign(
         bytes32 hashValue,
         bytes memory signedValue1,
         bytes memory signedValue2,
-        address user,
-        address guarantor
+        address user1,
+        address user2
     ) internal pure returns (bool) {
         // if sign1 equals sign2, return false
         if (_compareBytes(signedValue1, signedValue2)) {
             return false;
         }
 
-        // address must be one of seller, buyer, guarantor
+        // address must be one of user1, user2
         address address1 = ECDSA.recover(hashValue, signedValue1);
-        if (address1 != user && address1 != guarantor) {
+        if (address1 != user1 && address1 != user2) {
             return false;
         }
         address address2 = ECDSA.recover(hashValue, signedValue2);
-        if (address2 != user && address2 != guarantor) {
+        if (address2 != user1 && address2 != user2) {
             return false;
         }
         return true;

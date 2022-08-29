@@ -104,6 +104,7 @@ const web3 = new Web3()
 
 let tid = "457542584823209984";
 let privateKey = "0xf95816c196aec67bdae2f72005d4b11203162c72ed4e3833958e052df8a32edd";
+let buyer = "0x865Af88273B9218b94c46d12f34be460865B0A0d"
 
 /**
  * calculate hash
@@ -125,7 +126,7 @@ function getHash(types, values) {
 }
 
 const data = ethUtil.bufferToHex(ethUtil.toBuffer(Buffer.from(tid, "utf8")));
-var msgHash = ethUtil.toBuffer(getHash(['uint256', 'uint256', 'bytes'], [web3.utils.toWei('10000000', 'gwei'), web3.utils.toWei('2000000', 'gwei'), data]));
+var msgHash = ethUtil.toBuffer(getHash(['uint256', 'uint256', 'bytes', 'address'], [web3.utils.toWei('10000000', 'gwei'), web3.utils.toWei('2000000', 'gwei'), data, buyer]));
 
 const rsv = ethUtil.ecsign(msgHash, ethUtil.toBuffer(privateKey));
 console.log("hash: 0x" + msgHash.toString('hex'));

@@ -800,64 +800,6 @@ contract('VivMultiSign', function (accounts) {
     });
   });
 
-  describe('kill', function () {
-    describe('When the to address is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.kill(ZERO_ADDRESS, data, { from: other }),
-          'VIV1405',
-        );
-      });
-    });
-
-    describe('When the sender address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.kill(owner, data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When the first invoke', function () {
-      it('emit a confirmation event', async function () {
-        expectEvent(
-          await this.trade.kill(owner, data, { from: owner }),
-          'Confirmation',
-          { owner: owner, operation: operation },
-        );
-      });
-    });
-
-    describe('When repeate invoke', function () {
-      beforeEach(async function () {
-        await this.trade.kill(owner, data, { from: owner });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.kill(owner, data, { from: owner }),
-          'VIV1402',
-        );
-      });
-    });
-
-    describe('When all confirm', function () {
-      beforeEach(async function () {
-        await this.trade.kill(owner, data, { from: owner });
-        await this.trade.kill(owner, data, { from: account1 });
-      });
-
-      it('emit a destruct event', async function () {
-        expectEvent(
-          await this.trade.kill(owner, data, { from: account2 }),
-          'Destruct',
-          { to: owner },
-        );
-      });
-    });
-  });
-
   describe('isOwner', function () {
     describe('When the request address is not owner', function () {
       it('return false', async function () {

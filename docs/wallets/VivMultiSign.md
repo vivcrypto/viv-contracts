@@ -60,3 +60,4 @@ Parameters
 
 Please note:
 1) threshold number cannot be more than the number of members
+2) threshold number must more than 1.

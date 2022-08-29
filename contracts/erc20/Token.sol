@@ -3,13 +3,16 @@
 
 pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 
 /**
  * Merge transfer functionality of Ethereum and tokens
  */
-contract Token {
+contract Token is ReentrancyGuard{
 
     using SafeERC20 for IERC20;
+    using Address for address payable;
 
     /**
      * Notify When transfer happened
@@ -53,7 +56,7 @@ contract Token {
     }
 
     /**
-     * Tranfer
+     * Transfer
      * @param to the destination address
      * @param value value of transaction.
      */
@@ -61,9 +64,9 @@ contract Token {
         address token,
         address to,
         uint256 value
-    ) internal {
+    ) internal nonReentrant() {
         if (token == address(0)) {
-            payable(to).transfer(value);
+            payable(to).sendValue(value);
             emit Transfer(address(this), to, value);
         } else {
             IERC20(token).safeTransfer(to, value);
@@ -71,7 +74,7 @@ contract Token {
     }
 
     /**
-     * Tranfer form (Used for ERC20)
+     * Transfer form (Used for ERC20)
      * @param from the source address
      * @param to the destination address
      * @param value value of transaction.

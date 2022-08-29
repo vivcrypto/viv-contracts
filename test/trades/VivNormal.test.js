@@ -459,8 +459,8 @@ contract('VivNormal', function (accounts) {
 
       describe('When the coupon rate is not zero', function () {
         const couponRate = new BN(500);
-        const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
-        const signedValue2 = getSign(['bytes'], [tid], sellerPrivateKey);
+        const signedValue1 = getSign(['bytes', 'address'], [tid, seller], buyerPrivateKey);
+        const signedValue2 = getSign(['bytes', 'address'], [tid, seller], sellerPrivateKey);
         const signedValue3 = getSign(
           ['uint256', 'bytes', 'bytes'],
           [couponRate, couponId, tid],
@@ -531,8 +531,8 @@ contract('VivNormal', function (accounts) {
         describe('When the signedValue3 is wrong', function () {
           // Sign with a non-platform private key
           const signedValue3 = getSign(
-            ['uint256', 'bytes', 'bytes'],
-            [couponRate, couponId, tid],
+            ['uint256', 'bytes', 'bytes', 'address'],
+            [couponRate, couponId, tid, buyer],
             buyerPrivateKey,
           );
 
@@ -623,8 +623,8 @@ contract('VivNormal', function (accounts) {
       });
 
       describe('When the coupon rate is zero', function () {
-        const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
-        const signedValue2 = getSign(['bytes'], [tid], sellerPrivateKey);
+        const signedValue1 = getSign(['bytes', 'address'], [tid, seller], buyerPrivateKey);
+        const signedValue2 = getSign(['bytes', 'address'], [tid, seller], sellerPrivateKey);
         const signedValue3 = getSign(
           ['uint256', 'bytes', 'bytes'],
           [couponRate, couponId, tid],
@@ -702,8 +702,8 @@ contract('VivNormal', function (accounts) {
 
         describe('When the signedValue1 is wrong', function () {
           //  Not the signature of any one of the seller, buyer and guarantor
-          const signedValue1 = getSign(['bytes'], [tid], platformPrivateKey);
-          const signedValue2 = getSign(['bytes'], [tid], sellerPrivateKey);
+          const signedValue1 = getSign(['bytes', 'address'], [tid, seller], platformPrivateKey);
+          const signedValue2 = getSign(['bytes', 'address'], [tid, seller], sellerPrivateKey);
 
           it('reverts', async function () {
             await expectRevert(
@@ -729,9 +729,9 @@ contract('VivNormal', function (accounts) {
         });
 
         describe('When the signedValue2 is wrong', function () {
-          const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
+          const signedValue1 = getSign(['bytes', 'address'], [tid, seller], buyerPrivateKey);
           //  Not the signature of any one of the seller, buyer and guarantor
-          const signedValue2 = getSign(['bytes'], [tid], platformPrivateKey);
+          const signedValue2 = getSign(['bytes', 'address'], [tid, seller], platformPrivateKey);
           it('reverts', async function () {
             await expectRevert(
               transaction(
@@ -756,8 +756,8 @@ contract('VivNormal', function (accounts) {
         });
 
         describe('When the signedValue1 and signedValue2 is right', function () {
-          const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
-          const signedValue2 = getSign(['bytes'], [tid], sellerPrivateKey);
+          const signedValue1 = getSign(['bytes', 'address'], [tid, seller], buyerPrivateKey);
+          const signedValue2 = getSign(['bytes', 'address'], [tid, seller], sellerPrivateKey);
 
           const availableAmount = tradeAmount.sub(arbitrateFee);
           const feeAmount = availableAmount.mul(feeRate).divn(10000);
@@ -821,13 +821,13 @@ contract('VivNormal', function (accounts) {
         describe('When the signedValue1 is wrong', function () {
           //  Not the signature of any one of the seller, buyer and guarantor
           const signedValue1 = getSign(
-            ['uint256', 'uint256', 'bytes'],
-            [tradeAmount, arbitrateFee, tid],
+            ['uint256', 'uint256', 'bytes', 'address'],
+            [tradeAmount, arbitrateFee, tid, seller],
             platformPrivateKey,
           );
           const signedValue2 = getSign(
-            ['uint256', 'uint256', 'bytes'],
-            [tradeAmount, arbitrateFee, tid],
+            ['uint256', 'uint256', 'bytes', 'address'],
+            [tradeAmount, arbitrateFee, tid, seller],
             sellerPrivateKey,
           );
 
@@ -856,14 +856,14 @@ contract('VivNormal', function (accounts) {
 
         describe('When the signedValue2 is wrong', function () {
           const signedValue1 = getSign(
-            ['uint256', 'uint256', 'bytes'],
-            [tradeAmount, arbitrateFee, tid],
+            ['uint256', 'uint256', 'bytes', 'address'],
+            [tradeAmount, arbitrateFee, tid, buyer],
             buyerPrivateKey,
           );
           //  Not the signature of any one of the seller, buyer and guarantor
           const signedValue2 = getSign(
-            ['uint256', 'uint256', 'bytes'],
-            [tradeAmount, arbitrateFee, tid],
+            ['uint256', 'uint256', 'bytes', 'address'],
+            [tradeAmount, arbitrateFee, tid, buyer],
             platformPrivateKey,
           );
           it('reverts', async function () {
@@ -891,13 +891,13 @@ contract('VivNormal', function (accounts) {
 
         describe('When the signedValue1 and signedValue2 is right', function () {
           const signedValue1 = getSign(
-            ['uint256', 'uint256', 'bytes'],
-            [tradeAmount, arbitrateFee, tid],
+            ['uint256', 'uint256', 'bytes', 'address'],
+            [tradeAmount, arbitrateFee, tid, seller],
             buyerPrivateKey,
           );
           const signedValue2 = getSign(
-            ['uint256', 'uint256', 'bytes'],
-            [tradeAmount, arbitrateFee, tid],
+            ['uint256', 'uint256', 'bytes', 'address'],
+            [tradeAmount, arbitrateFee, tid, seller],
             sellerPrivateKey,
           );
 
@@ -935,8 +935,8 @@ contract('VivNormal', function (accounts) {
       });
 
       describe('When remainder amount is not enough', function () {
-        const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
-        const signedValue2 = getSign(['bytes'], [tid], sellerPrivateKey);
+        const signedValue1 = getSign(['bytes', 'address'], [tid, seller], buyerPrivateKey);
+        const signedValue2 = getSign(['bytes', 'address'], [tid, seller], sellerPrivateKey);
         const signedValue3 = getSign(
           ['uint256', 'bytes', 'bytes'],
           [couponRate, couponId, tid],
@@ -986,8 +986,8 @@ contract('VivNormal', function (accounts) {
       });
 
       describe('When withdrawing multiple times', function () {
-        const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
-        const signedValue2 = getSign(['bytes'], [tid], sellerPrivateKey);
+        const signedValue1 = getSign(['bytes', 'address'], [tid, seller], buyerPrivateKey);
+        const signedValue2 = getSign(['bytes', 'address'], [tid, seller], sellerPrivateKey);
         const signedValue3 = getSign(
           ['uint256', 'bytes', 'bytes'],
           [couponRate, couponId, tid],
@@ -1059,8 +1059,8 @@ contract('VivNormal', function (accounts) {
       });
 
       describe('When buyer withraw', function () {
-        const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
-        const signedValue2 = getSign(['bytes'], [tid], sellerPrivateKey);
+        const signedValue1 = getSign(['bytes', 'address'], [tid, buyer], buyerPrivateKey);
+        const signedValue2 = getSign(['bytes', 'address'], [tid, buyer], sellerPrivateKey);
         const signedValue3 = getSign(
           ['uint256', 'bytes', 'bytes'],
           [couponRate, couponId, tid],
@@ -1110,8 +1110,17 @@ contract('VivNormal', function (accounts) {
       });
 
       describe('When guarantor sign', function () {
-        const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
-        const signedValue2 = getSign(['bytes'], [tid], guarantorPrivateKey);
+        const arbitrateFee = new BN(10000);
+        const signedValue1 = getSign(
+          ['uint256', 'uint256', 'bytes', 'address'],
+          [tradeAmount, arbitrateFee, tid, buyer],
+          buyerPrivateKey,
+        );
+        const signedValue2 = getSign(
+          ['uint256', 'uint256', 'bytes', 'address'],
+          [tradeAmount, arbitrateFee, tid, buyer],
+          guarantorPrivateKey,
+        );
         const signedValue3 = getSign(
           ['uint256', 'bytes', 'bytes'],
           [couponRate, couponId, tid],
@@ -1137,7 +1146,8 @@ contract('VivNormal', function (accounts) {
         });
 
         it('When the buyer withdraws, the platform get the service fee', async function () {
-          const feeAmount = tradeAmount.mul(feeRate).divn(10000);
+          const availableAmount = tradeAmount.sub(arbitrateFee);
+          const feeAmount = availableAmount.mul(feeRate).divn(10000);
           const platformBalance = await current(platform);
           const newBalance = platformBalance.add(feeAmount);
           await transaction(
@@ -1162,8 +1172,8 @@ contract('VivNormal', function (accounts) {
     });
 
     describe('when the token is erc20 address', function () {
-      const signedValue1 = getSign(['bytes'], [tid], buyerPrivateKey);
-      const signedValue2 = getSign(['bytes'], [tid], guarantorPrivateKey);
+      const signedValue1 = getSign(['bytes', 'address'], [tid, buyer], buyerPrivateKey);
+      const signedValue2 = getSign(['bytes', 'address'], [tid, buyer], sellerPrivateKey);
       const signedValue3 = getSign(
         ['uint256', 'bytes', 'bytes'],
         [couponRate, couponId, tid],

@@ -3,6 +3,8 @@
 
 pragma solidity ^0.8.4;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/Address.sol";
 import "../util/SignUtil.sol";
 
 /**
@@ -79,7 +81,8 @@ abstract contract MultiOwned is MultiSign {
     // list of owners
     address[11] _owners;
     // max owners allow to set
-    uint256 constant _MAX_OWNERS = 10;
+
+    uint256 public constant MAX_OWNER_COUNT = 10;
     // index on the list of owners to allow reverse lookup
     mapping(address => uint256) _ownerIndex;
     // the ongoing operations.
@@ -100,7 +103,7 @@ abstract contract MultiOwned is MultiSign {
 
     // MODIFIERS
 
-    // only owner function modifier.
+    // allow owner modifier
     modifier onlyOwner(address addr) {
         require(_ownerIndex[addr] > 0, "VIV0005");
         _;
@@ -137,7 +140,7 @@ abstract contract MultiOwned is MultiSign {
     // constructor is given number of signs threshold to do protected "onlyManyOwners" transactions
     // as well as the selection of addresses capable of confirming them.
     constructor(address[] memory owners, uint256 threshold) {
-        require(threshold <= owners.length && threshold > 0, "VIV0033");
+        require(threshold <= owners.length && threshold >= 2, "VIV0033");
         _numOwners = owners.length;
         for (uint256 i = 0; i < owners.length; ++i) {
             require(owners[i] != address(0), "VIV0034");
@@ -183,7 +186,7 @@ abstract contract MultiOwned is MultiSign {
         return (count, confirmOwners);
     }
 
-    // Revokes a prior confirmation of the given operation
+    // Allows an owner to revoke a confirmation for a transaction.
     function revoke(bytes calldata data) external override onlyOwner(msg.sender) {
         bytes32 operation = ECDSA.toEthSignedMessageHash(abi.encode(data));
         require(_pending[operation].yetNeeded > 0, "VIV5005");
@@ -222,12 +225,11 @@ abstract contract MultiOwned is MultiSign {
         validAddress(owner)
         notOwner(owner)
         minThreshold(newthreshold, _numOwners + 1)
-        maxMembers(_MAX_OWNERS, _numOwners + 1)
+        maxMembers(MAX_OWNER_COUNT, _numOwners + 1)
         onlyManyOwners(data)
     {
         bytes32 operation = ECDSA.toEthSignedMessageHash(abi.encode(data));
         _clearPending();
-        // if (_numOwners >= _MAX_OWNERS) _reorganizeOwners();
         _numOwners++;
         _owners[_numOwners] = owner;
         _ownerIndex[owner] = _numOwners;
@@ -407,9 +409,10 @@ contract DayLimit {
 /**
  * Viv multi sign
  */
-contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
+contract VivMultiSign is MultiSign, MultiOwned, DayLimit, ReentrancyGuard {
 
     using SafeERC20 for IERC20;
+    using Address for address payable;
 
     // Transaction structure to remember details of transaction lest it need be saved for a later call.
     struct Transaction {
@@ -432,12 +435,6 @@ contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
         uint256 threshold,
         uint256 daylimit
     ) MultiOwned(owners, threshold) DayLimit(daylimit) {}
-
-    // kills the contract sending everything to `to`.
-    function kill(address to, bytes calldata data) external validAddress(to) onlyManyOwners(data) {
-        emit Destruct(to);
-        selfdestruct(payable(to));
-    }
 
     function dailyLimit() external view returns (uint256) {
         return _dailyLimit;
@@ -463,8 +460,6 @@ contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
         super._clearPending();
     }
 
-    fallback() external payable {}
-
     receive() external payable {}
 
     /* Outside-visible transact entry point. Executes transacion immediately if below daily spend limit.
@@ -481,7 +476,7 @@ contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
         uint256 value,
         address token,
         bytes calldata data
-    ) external payable override onlyOwner(msg.sender) returns (bytes32 operation) {
+    ) external payable override nonReentrant() onlyOwner(msg.sender) returns (bytes32 operation) {
         require(to != address(0), "VIV1401");
         require(value > 0, "VIV0001");
 
@@ -496,7 +491,7 @@ contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
             emit SingleTransact(msg.sender, value, to, data);
             // yes - just execute the call.
             if (token == address(0)) {
-                payable(to).transfer(value);
+                payable(to).sendValue(value);
                 emit Transfer(address(this), to, value);
             } else {
                 IERC20(token).safeTransfer(to, value);
@@ -505,7 +500,7 @@ contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
         }
         // determine our operation hash.
         operation = ECDSA.toEthSignedMessageHash(abi.encode(data));
-        if (!_confirm(data) && _txs[operation].to == address(0)) {
+        if (!_confirm(data)) {
             _txs[operation].to = to;
             _txs[operation].value = value;
             _txs[operation].data = data;
@@ -514,7 +509,7 @@ contract VivMultiSign is MultiSign, MultiOwned, DayLimit {
         }
     }
 
-    function confirm(bytes calldata data) public payable override returns (bool result) {
+    function confirm(bytes calldata data) public payable nonReentrant() override returns (bool result) {
         bytes32 operation = ECDSA.toEthSignedMessageHash(abi.encode(data));
         require(_txs[operation].to != address(0), "VIV5005");
         return _confirm(data);
