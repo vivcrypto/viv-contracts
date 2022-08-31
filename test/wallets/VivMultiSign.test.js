@@ -18,13 +18,12 @@ contract('VivMultiSign', function (accounts) {
 
   const owners = [owner, account1, account2, account3];
   const threshold = new BN(3);
-  const daylimit = new BN(0);
   const data = '0x303030303030303030303030303030303030';
   const operation = getHashString(['bytes'], [data]);
 
   beforeEach(async function () {
     this.erc20 = await ERC20Mock.new(name, symbol, owner, tradeAmount);
-    this.trade = await VivMultiSign.new(owners, threshold, daylimit);
+    this.trade = await VivMultiSign.new(owners, threshold);
   });
 
   describe('constructor', function () {
@@ -33,7 +32,7 @@ contract('VivMultiSign', function (accounts) {
       const threshold = new BN(2);
       it('reverts', async function () {
         await expectRevert(
-          VivMultiSign.new(owners, threshold, daylimit),
+          VivMultiSign.new(owners, threshold),
           'VIV0033',
         );
       });
@@ -44,7 +43,7 @@ contract('VivMultiSign', function (accounts) {
       const threshold = new BN(2);
       it('reverts', async function () {
         await expectRevert(
-          VivMultiSign.new(owners, threshold, daylimit),
+          VivMultiSign.new(owners, threshold),
           'VIV0034',
         );
       });
@@ -55,7 +54,7 @@ contract('VivMultiSign', function (accounts) {
       const threshold = new BN(2);
       it('reverts', async function () {
         await expectRevert(
-          VivMultiSign.new(owners, threshold, daylimit),
+          VivMultiSign.new(owners, threshold),
           'VIV0035',
         );
       });
@@ -100,25 +99,7 @@ contract('VivMultiSign', function (accounts) {
         });
       });
 
-      describe('The value is under daliy limit', function () {
-        let newTrade;
-        const daylimit = new BN(100);
-
-        beforeEach(async function () {
-          newTrade = await VivMultiSign.new(owners, threshold, daylimit);
-          await ether(owner, newTrade.address, tradeAmount);
-        });
-
-        it('emits a single transact event', async function () {
-          expectEvent(
-            await newTrade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner }),
-            'SingleTransact',
-            { owner: owner, value: tradeAmount, to: other, data: data },
-          );
-        });
-      });
-
-      describe('The value is over daliy limit', function () {
+      describe('The normal transaction', function () {
         beforeEach(async function () {
           await ether(owner, this.trade.address, tradeAmount);
         });
@@ -128,7 +109,7 @@ contract('VivMultiSign', function (accounts) {
             expectEvent(
               await this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner }),
               'Confirmation',
-              { owner: owner, operation: operation },
+              { member: owner, operation: operation },
             );
           });
         });
@@ -145,25 +126,7 @@ contract('VivMultiSign', function (accounts) {
         });
       });
 
-      describe('The value is under daliy limit', function () {
-        let newTrade;
-        const daylimit = new BN(100);
-
-        beforeEach(async function () {
-          newTrade = await VivMultiSign.new(owners, threshold, daylimit);
-          await this.erc20.transferInternal(owner, newTrade.address, tradeAmount);
-        });
-
-        it('emits a single transact event', async function () {
-          expectEvent(
-            await newTrade.execute(other, tradeAmount, this.erc20.address, data, { from: owner }),
-            'SingleTransact',
-            { owner: owner, value: tradeAmount, to: other, data: data },
-          );
-        });
-      });
-
-      describe('The value is over daliy limit', function () {
+      describe('The normal transaction', function () {
         beforeEach(async function () {
           await this.erc20.transferInternal(owner, this.trade.address, tradeAmount);
         });
@@ -173,7 +136,7 @@ contract('VivMultiSign', function (accounts) {
             expectEvent(
               await this.trade.execute(other, tradeAmount, this.erc20.address, data, { from: owner }),
               'Confirmation',
-              { owner: owner, operation: operation },
+              { member: owner, operation: operation },
             );
           });
         });
@@ -214,7 +177,7 @@ contract('VivMultiSign', function (accounts) {
           expectEvent(
             await this.trade.confirm(data, { from: account1 }),
             'Confirmation',
-            { owner: account1, operation: operation },
+            { member: account1, operation: operation },
           );
         });
       });
@@ -228,7 +191,7 @@ contract('VivMultiSign', function (accounts) {
           expectEvent(
             await this.trade.confirm(data, { from: account2 }),
             'MultiTransact',
-            { owner: account2, operation: operation, value: tradeAmount, to: other, data: data },
+            { member: account2, operation: operation, value: tradeAmount, to: other, data: data },
           );
         });
       });
@@ -260,7 +223,7 @@ contract('VivMultiSign', function (accounts) {
           expectEvent(
             await this.trade.confirm(data, { from: account1 }),
             'Confirmation',
-            { owner: account1, operation: operation },
+            { member: account1, operation: operation },
           );
         });
       });
@@ -274,7 +237,7 @@ contract('VivMultiSign', function (accounts) {
           expectEvent(
             await this.trade.confirm(data, { from: account2 }),
             'MultiTransact',
-            { owner: account2, operation: operation, value: tradeAmount, to: other, data: data },
+            { member: account2, operation: operation, value: tradeAmount, to: other, data: data },
           );
         });
       });
@@ -296,520 +259,17 @@ contract('VivMultiSign', function (accounts) {
     });
   });
 
-  describe('revoke', function () {
-    describe('When the trade is not exists', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.revoke(data, { from: owner }),
-          'VIV5005',
-        );
-      });
-    });
 
-    describe('When the sender address is not the owner', function () {
-      beforeEach(async function () {
-        await this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner, value: tradeAmount });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.revoke(data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When reovke a confirm', function () {
-      beforeEach(async function () {
-        await this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner, value: tradeAmount });
-      });
-
-      describe('When not confirm before', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.revoke(data, { from: account1 }),
-            'VIV1403',
-          );
-        });
-      });
-
-      describe('When confirm before', function () {
-        it('emit a revoke event', async function () {
-          expectEvent(
-            await this.trade.revoke(data, { from: owner }),
-            'Revoke',
-            { owner: owner, operation: operation },
-          );
-        });
-      });
-    });
-  });
-
-  describe('changeOwner', function () {
-    describe('When the from address is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeOwner(ZERO_ADDRESS, account4, data, { from: owner }),
-          'VIV1405',
-        );
-      });
-    });
-
-    describe('When the to address is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeOwner(account1, ZERO_ADDRESS, data, { from: owner }),
-          'VIV1405',
-        );
-      });
-    });
-
-    describe('When the from address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeOwner(other, account4, data, { from: owner }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When the to address is the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeOwner(account1, account2, data, { from: account4 }),
-          'VIV0031',
-        );
-      });
-    });
-
-    describe('When the sender address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeOwner(account1, account4, data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When the first invoke', function () {
-      it('emit a confirmation event', async function () {
-        expectEvent(
-          await this.trade.changeOwner(account1, account4, data, { from: owner }),
-          'Confirmation',
-          { owner: owner, operation: operation },
-        );
-      });
-    });
-
-    describe('When repeate invoke', function () {
-      beforeEach(async function () {
-        await this.trade.changeOwner(account1, account4, data, { from: owner });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeOwner(account1, account4, data, { from: owner }),
-          'VIV1402',
-        );
-      });
-    });
-
-    describe('When all confirm', function () {
-      beforeEach(async function () {
-        await this.trade.changeOwner(account1, account4, data, { from: owner });
-        await this.trade.changeOwner(account1, account4, data, { from: account2 });
-      });
-
-      it('emit a owner changed event', async function () {
-        expectEvent(
-          await this.trade.changeOwner(account1, account4, data, { from: account3 }),
-          'OwnerChanged',
-          { oldOwner: account1, newOwner: account4, operation: operation },
-        );
-      });
-    });
-  });
-
-  describe('addOwner', function () {
-    const newthreshold = new BN(4);
-
-    describe('When the owner address is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.addOwner(ZERO_ADDRESS, newthreshold, data, { from: owner }),
-          'VIV1405',
-        );
-      });
-    });
-
-    describe('When the new owner address is the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.addOwner(account1, newthreshold, data, { from: owner }),
-          'VIV0031',
-        );
-      });
-    });
-
-    describe('When the sender address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.addOwner(account4, newthreshold, data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When new threshold is invalid', function () {
-      describe('When new threshold is more than the number of members', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.addOwner(account4, 6, data, { from: owner }),
-            'VIV0032',
-          );
-        });
-      });
-
-      describe('When new threshold is zero', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.addOwner(account4, 0, data, { from: owner }),
-            'VIV0032',
-          );
-        });
-      });
-    });
-
-    describe('When the number of members is more than the maximum number of members', function () {
-      let newTrade;
-      const members = [owner];
-
-      beforeEach(async function () {
-        for (let i = 0; i < 9; i++) {
-          const account = Wallet.generate();
-          members.push(web3.utils.toChecksumAddress(account.getAddressString()));
-        }
-        newTrade = await VivMultiSign.new(members, threshold, daylimit);
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          newTrade.addOwner(account4, newthreshold, data, { from: owner }),
-          'VIV1404',
-        );
-      });
-    });
-
-    describe('When the first invoke', function () {
-      it('emit a confirmation event', async function () {
-        expectEvent(
-          await this.trade.addOwner(account4, newthreshold, data, { from: owner }),
-          'Confirmation',
-          { owner: owner, operation: operation },
-        );
-      });
-    });
-
-    describe('When repeate invoke', function () {
-      beforeEach(async function () {
-        await this.trade.addOwner(account4, newthreshold, data, { from: owner });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.addOwner(account4, newthreshold, data, { from: owner }),
-          'VIV1402',
-        );
-      });
-    });
-
-    describe('When all confirm', function () {
-      beforeEach(async function () {
-        await this.trade.addOwner(account4, newthreshold, data, { from: owner });
-        await this.trade.addOwner(account4, newthreshold, data, { from: account1 });
-      });
-
-      it('emit a owner added event', async function () {
-        expectEvent(
-          await this.trade.addOwner(account4, newthreshold, data, { from: account2 }),
-          'OwnerAdded',
-          { newOwner: account4, operation: operation },
-        );
-      });
-    });
-  });
-
-  describe('removeOwner', function () {
-    const newthreshold = new BN(2);
-
-    describe('When the owner address is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.removeOwner(ZERO_ADDRESS, newthreshold, data, { from: owner }),
-          'VIV1405',
-        );
-      });
-    });
-
-    describe('When the removed owner address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.removeOwner(account4, newthreshold, data, { from: owner }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When the sender address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.removeOwner(account3, newthreshold, data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When new threshold is invalid', function () {
-      describe('When new threshold is more than the number of members', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.removeOwner(account3, 4, data, { from: owner }),
-            'VIV0032',
-          );
-        });
-      });
-
-      describe('When new threshold is zero', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.removeOwner(account3, 0, data, { from: owner }),
-            'VIV0032',
-          );
-        });
-      });
-    });
-
-    describe('When the first invoke', function () {
-      it('emit a confirmation event', async function () {
-        expectEvent(
-          await this.trade.removeOwner(account3, newthreshold, data, { from: owner }),
-          'Confirmation',
-          { owner: owner, operation: operation },
-        );
-      });
-    });
-
-    describe('When repeate invoke', function () {
-      beforeEach(async function () {
-        await this.trade.removeOwner(account3, newthreshold, data, { from: owner });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.removeOwner(account3, newthreshold, data, { from: owner }),
-          'VIV1402',
-        );
-      });
-    });
-
-    describe('When all confirm', function () {
-      beforeEach(async function () {
-        await this.trade.removeOwner(account3, newthreshold, data, { from: owner });
-        await this.trade.removeOwner(account3, newthreshold, data, { from: account1 });
-      });
-
-      it('emit a owner removed event', async function () {
-        expectEvent(
-          await this.trade.removeOwner(account3, newthreshold, data, { from: account2 }),
-          'OwnerRemoved',
-          { oldOwner: account3, operation: operation },
-        );
-      });
-    });
-  });
-
-  describe('changeRequirement', function () {
-    const newthreshold = new BN(2);
-
-    describe('When the sender address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeRequirement(newthreshold, data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When new threshold is invalid', function () {
-      describe('When new threshold is more than the number of members', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.changeRequirement(5, data, { from: owner }),
-            'VIV0032',
-          );
-        });
-      });
-
-      describe('When new threshold is zero', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.changeRequirement(0, data, { from: owner }),
-            'VIV0032',
-          );
-        });
-      });
-    });
-
-    describe('When the first invoke', function () {
-      it('emit a confirmation event', async function () {
-        expectEvent(
-          await this.trade.changeRequirement(newthreshold, data, { from: owner }),
-          'Confirmation',
-          { owner: owner, operation: operation },
-        );
-      });
-    });
-
-    describe('When repeate invoke', function () {
-      beforeEach(async function () {
-        await this.trade.changeRequirement(newthreshold, data, { from: owner });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeRequirement(newthreshold, data, { from: owner }),
-          'VIV1402',
-        );
-      });
-    });
-
-    describe('When all confirm', function () {
-      beforeEach(async function () {
-        await this.trade.changeRequirement(newthreshold, data, { from: owner });
-        await this.trade.changeRequirement(newthreshold, data, { from: account1 });
-      });
-
-      it('emit a requirement changed event', async function () {
-        // const {receipt} = await this.trade.changeRequirement(newthreshold, data, {from: account2});
-        // console.log(receipt);
-        expectEvent(
-          await this.trade.changeRequirement(newthreshold, data, { from: account2 }),
-          'RequirementChanged',
-          { newRequirement: newthreshold, operation: operation },
-        );
-      });
-    });
-  });
-
-  describe('changeDailyLimit', function () {
-    const newLimit = new BN(100);
-    describe('When the sender address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeDailyLimit(newLimit, data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When the first invoke', function () {
-      it('emit a confirmation event', async function () {
-        expectEvent(
-          await this.trade.changeDailyLimit(newLimit, data, { from: owner }),
-          'Confirmation',
-          { owner: owner, operation: operation },
-        );
-      });
-    });
-
-    describe('When repeate invoke', function () {
-      beforeEach(async function () {
-        await this.trade.changeDailyLimit(newLimit, data, { from: owner });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.changeDailyLimit(newLimit, data, { from: owner }),
-          'VIV1402',
-        );
-      });
-    });
-
-    describe('When all confirm', function () {
-      beforeEach(async function () {
-        await this.trade.changeDailyLimit(newLimit, data, { from: owner });
-        await this.trade.changeDailyLimit(newLimit, data, { from: account1 });
-      });
-
-      it('emit a daily limit changed event', async function () {
-        expectEvent(
-          await this.trade.changeDailyLimit(newLimit, data, { from: account2 }),
-          'DailyLimitChanged',
-          { newLimit: newLimit },
-        );
-      });
-    });
-  });
-
-  describe('clearSpentToday', function () {
-    describe('When the sender address is not the owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.clearSpentToday(data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When the first invoke', function () {
-      it('emit a confirmation event', async function () {
-        expectEvent(
-          await this.trade.clearSpentToday(data, { from: owner }),
-          'Confirmation',
-          { owner: owner, operation: operation },
-        );
-      });
-    });
-
-    describe('When repeate invoke', function () {
-      beforeEach(async function () {
-        await this.trade.clearSpentToday(data, { from: owner });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.clearSpentToday(data, { from: owner }),
-          'VIV1402',
-        );
-      });
-    });
-
-    describe('When all confirm', function () {
-      beforeEach(async function () {
-        await this.trade.clearSpentToday(data, { from: owner });
-        await this.trade.clearSpentToday(data, { from: account1 });
-      });
-
-      it('emit a daily limit changed event', async function () {
-        expectEvent(
-          await this.trade.clearSpentToday(data, { from: account2 }),
-          'SpentTodayCleared',
-          { spentToday: new BN(0) },
-        );
-      });
-    });
-  });
-
-  describe('isOwner', function () {
-    describe('When the request address is not owner', function () {
+  describe('isMember', function () {
+    describe('When the request address is not member', function () {
       it('return false', async function () {
-        expect(await this.trade.isOwner(other)).to.be.equal(false);
+        expect(await this.trade.isMember(other)).to.be.equal(false);
       });
     });
 
-    describe('When the request address is not owner', function () {
+    describe('When the request address is not member', function () {
       it('return true', async function () {
-        expect(await this.trade.isOwner(account1)).to.be.equal(true);
+        expect(await this.trade.isMember(account1)).to.be.equal(true);
       });
     });
   });
@@ -832,9 +292,9 @@ contract('VivMultiSign', function (accounts) {
     });
   });
 
-  describe('numberOfOwners', function () {
+  describe('numberOfMembers', function () {
     it('return 4', async function () {
-      expect(await this.trade.numberOfOwners()).to.be.bignumber.equal(new BN(4));
+      expect(await this.trade.numberOfMembers()).to.be.bignumber.equal(new BN(4));
     });
   });
 
@@ -844,9 +304,9 @@ contract('VivMultiSign', function (accounts) {
     });
   });
 
-  describe('getOwners', function () {
+  describe('getMembers', function () {
     it('return 4', async function () {
-      const owners = await this.trade.getOwners();
+      const owners = await this.trade.getMembers();
       expect(owners.length).to.be.equal(4);
     });
   });

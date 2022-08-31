@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Viv Contracts
 
-pragma solidity ^0.8.4;
+pragma solidity 0.8.4;
 
 import "../erc20/Token.sol";
 import "../util/SignUtil.sol";
