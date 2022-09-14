@@ -1,5 +1,6 @@
-const { BN, constants, expectEvent, expectRevert, send } = require('@openzeppelin/test-helpers');
+const { BN, constants, expectEvent, expectRevert, balance, send } = require('@openzeppelin/test-helpers');
 const { ether } = send;
+const { current } = balance;
 const { expect } = require('chai');
 const { ZERO_ADDRESS } = constants;
 const { getHashString } = require('../helpers/sign');
@@ -20,10 +21,11 @@ contract('VivMultiSign', function (accounts) {
   const threshold = new BN(3);
   const data = '0x303030303030303030303030303030303030';
   const operation = getHashString(['bytes'], [data]);
+  const delay = new BN(0);
 
   beforeEach(async function () {
     this.erc20 = await ERC20Mock.new(name, symbol, owner, tradeAmount);
-    this.trade = await VivMultiSign.new(owners, threshold);
+    this.trade = await VivMultiSign.new(owners, threshold, delay);
   });
 
   describe('constructor', function () {
@@ -32,7 +34,7 @@ contract('VivMultiSign', function (accounts) {
       const threshold = new BN(2);
       it('reverts', async function () {
         await expectRevert(
-          VivMultiSign.new(owners, threshold),
+          VivMultiSign.new(owners, threshold, delay),
           'VIV0033',
         );
       });
@@ -43,7 +45,7 @@ contract('VivMultiSign', function (accounts) {
       const threshold = new BN(2);
       it('reverts', async function () {
         await expectRevert(
-          VivMultiSign.new(owners, threshold),
+          VivMultiSign.new(owners, threshold, delay),
           'VIV0034',
         );
       });
@@ -54,89 +56,171 @@ contract('VivMultiSign', function (accounts) {
       const threshold = new BN(2);
       it('reverts', async function () {
         await expectRevert(
-          VivMultiSign.new(owners, threshold),
+          VivMultiSign.new(owners, threshold, delay),
           'VIV0035',
         );
       });
     });
   });
 
-  describe('execute', function () {
-    describe('When the sender address is the not owner', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.execute(ZERO_ADDRESS, tradeAmount, ZERO_ADDRESS, data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When the recipient address is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.execute(ZERO_ADDRESS, tradeAmount, ZERO_ADDRESS, data, { from: owner }),
-          'VIV1401',
-        );
-      });
-    });
-
-    describe('When the value is zero', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.execute(other, 0, ZERO_ADDRESS, data, { from: owner }),
-          'VIV0001',
-        );
-      });
-    });
-
+  describe('transfer', function () {
+    
     describe('When the token is zero address', function () {
-      describe('Then value is more than the balance of contract', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner }),
-            'VIV0036',
-          );
-        });
-      });
 
       describe('The normal transaction', function () {
+        let proposalId;
         beforeEach(async function () {
+          const data = this.trade.contract.methods.transfer(other, tradeAmount, ZERO_ADDRESS).encodeABI();
+          const receipt = await this.trade.submitProposal(this.trade.address, data, { from: owner });
+          proposalId = receipt.logs.find(({ event }) => event === 'Submission').args.proposalId;
+          await this.trade.vote(proposalId, {from: account1});
           await ether(owner, this.trade.address, tradeAmount);
         });
 
-        describe('Wait confirm', function () {
-          it('emits a single transact event', async function () {
+        describe('Vote a proposal', function () {
+          it('emits a execution event', async function () {
+            const oldBalance = await current(other);
+            const newBalance = oldBalance.add(tradeAmount);
             expectEvent(
-              await this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner }),
-              'Confirmation',
-              { member: owner, operation: operation },
+              await this.trade.vote(proposalId, {from: account2}),
+              'Execution',
+              { proposalId: proposalId },
             );
+            expect(await current(other)).to.be.bignumber.equal(newBalance);
           });
         });
       });
     });
 
+    
     describe('When the token is erc20 address', function () {
-      describe('Then value is more than the balance of contract', function () {
-        it('reverts', async function () {
-          await expectRevert(
-            this.trade.execute(other, tradeAmount, this.erc20.address, data, { from: owner }),
-            'VIV0037',
-          );
-        });
-      });
-
       describe('The normal transaction', function () {
+        let proposalId;
         beforeEach(async function () {
+          const data = this.trade.contract.methods.transfer(other, tradeAmount, this.erc20.address).encodeABI();
+          const receipt = await this.trade.submitProposal(this.trade.address, data, { from: owner });
+          proposalId = receipt.logs.find(({ event }) => event === 'Submission').args.proposalId;
+          await this.trade.vote(proposalId, {from: account1});
           await this.erc20.transferInternal(owner, this.trade.address, tradeAmount);
         });
 
-        describe('Wait confirm', function () {
-          it('emits a single transact event', async function () {
+        describe('Vote a proposal', function () {
+          it('emits a execution event', async function () {
+            const oldBalance = await this.erc20.balanceOf(other);
+            const newBalance = oldBalance.add(tradeAmount);
             expectEvent(
-              await this.trade.execute(other, tradeAmount, this.erc20.address, data, { from: owner }),
-              'Confirmation',
-              { member: owner, operation: operation },
+              await this.trade.vote(proposalId, {from: account2}),
+              'Execution',
+              { proposalId: proposalId },
+            );
+            expect(await this.erc20.balanceOf(other)).to.be.bignumber.equal(newBalance);
+          });
+        });
+      });
+    });
+  });
+
+  describe('addOwner', function () {
+    describe('When add an owner', function () {
+      describe('When the request address is not owner', function () {
+        let proposalId;
+        let data;
+        beforeEach(async function () {
+          data = this.trade.contract.methods.addOwner(other, threshold).encodeABI();
+          const receipt = await this.trade.submitProposal(this.trade.address, data, { from: owner });
+          proposalId = receipt.logs.find(({ event }) => event === 'Submission').args.proposalId;
+          await this.trade.vote(proposalId, {from: account1});
+        });
+
+        describe('Vote a proposal', function () {
+          it('emits a execution event', async function () {
+            expect(await this.trade.isOwner(other)).to.be.equal(false);
+            expectEvent(
+              await this.trade.vote(proposalId, {from: account2}),
+              'Execution',
+              { proposalId: proposalId },
+            );
+            expect(await this.trade.isOwner(other)).to.be.equal(true);
+          });
+        });
+      });
+    });
+  });
+
+  describe('removeOwner', function () {
+    describe('When remove an owner', function () {
+      describe('When the request address is owner', function () {
+        let proposalId;
+        let data;
+        beforeEach(async function () {
+          data = this.trade.contract.methods.removeOwner(account3, threshold).encodeABI();
+          const receipt = await this.trade.submitProposal(this.trade.address, data, { from: owner });
+          proposalId = receipt.logs.find(({ event }) => event === 'Submission').args.proposalId;
+          await this.trade.vote(proposalId, {from: account1});
+        });
+
+        describe('Vote a proposal', function () {
+          it('emits a execution event', async function () {
+            expect(await this.trade.isOwner(account3)).to.be.equal(true);
+            expectEvent(
+              await this.trade.vote(proposalId, {from: account2}),
+              'Execution',
+              { proposalId: proposalId },
+            );
+            expect(await this.trade.isOwner(account3)).to.be.equal(false);
+          });
+        });
+      });
+    });
+  });
+
+  describe('changeOwner', function () {
+    describe('When change an owner', function () {
+      describe('When the request address is owner', function () {
+        let proposalId;
+        let data;
+        beforeEach(async function () {
+          data = this.trade.contract.methods.changeOwner(account3, other).encodeABI();
+          const receipt = await this.trade.submitProposal(this.trade.address, data, { from: owner });
+          proposalId = receipt.logs.find(({ event }) => event === 'Submission').args.proposalId;
+          await this.trade.vote(proposalId, {from: account1});
+        });
+
+        describe('Vote a proposal', function () {
+          it('emits a execution event', async function () {
+            expect(await this.trade.isOwner(account3)).to.be.equal(true);
+            expect(await this.trade.isOwner(other)).to.be.equal(false);
+            expectEvent(
+              await this.trade.vote(proposalId, {from: account2}),
+              'Execution',
+              { proposalId: proposalId },
+            );
+            expect(await this.trade.isOwner(account3)).to.be.equal(false);
+            expect(await this.trade.isOwner(other)).to.be.equal(true);
+          });
+        });
+      });
+    });
+  });
+
+  describe('changeRequirement', function () {
+    describe('When change requirement', function () {
+      describe('When new threshold is valid', function () {
+        let proposalId;
+        let data;
+        beforeEach(async function () {
+          data = this.trade.contract.methods.changeRequirement(2).encodeABI();
+          const receipt = await this.trade.submitProposal(this.trade.address, data, { from: owner });
+          proposalId = receipt.logs.find(({ event }) => event === 'Submission').args.proposalId;
+          await this.trade.vote(proposalId, {from: account1});
+        });
+
+        describe('Vote a proposal', function () {
+          it('emits a execution event', async function () {
+            expectEvent(
+              await this.trade.vote(proposalId, {from: account2}),
+              'Execution',
+              { proposalId: proposalId },
             );
           });
         });
@@ -144,194 +228,29 @@ contract('VivMultiSign', function (accounts) {
     });
   });
 
-  describe('confirm', function () {
-    describe('When the trade is not exists', function () {
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.confirm(data, { from: owner }),
-          'VIV5005',
-        );
-      });
-    });
-
-    describe('When the sender address is not the owner', function () {
-      beforeEach(async function () {
-        await this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner, value: tradeAmount });
-      });
-
-      it('reverts', async function () {
-        await expectRevert(
-          this.trade.confirm(data, { from: other }),
-          'VIV0005',
-        );
-      });
-    });
-
-    describe('When the token is zero address', function () {
-      beforeEach(async function () {
-        await this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner, value: tradeAmount });
-      });
-
-      describe('When the first confirm', function () {
-        it('emit a Confirmation event', async function () {
-          expectEvent(
-            await this.trade.confirm(data, { from: account1 }),
-            'Confirmation',
-            { member: account1, operation: operation },
-          );
-        });
-      });
-
-      describe('When the last confirm', function () {
+  describe('updateDelay', function () {
+    describe('When update delay', function () {
+      describe('When new delay', function () {
+        let proposalId;
+        let data;
         beforeEach(async function () {
-          await this.trade.confirm(data, { from: account1 });
+          data = this.trade.contract.methods.updateDelay(8).encodeABI();
+          const receipt = await this.trade.submitProposal(this.trade.address, data, { from: owner });
+          proposalId = receipt.logs.find(({ event }) => event === 'Submission').args.proposalId;
+          await this.trade.vote(proposalId, {from: account1});
         });
 
-        it('emit a MultiTransact event', async function () {
-          expectEvent(
-            await this.trade.confirm(data, { from: account2 }),
-            'MultiTransact',
-            { member: account2, operation: operation, value: tradeAmount, to: other, data: data },
-          );
-        });
-      });
-
-      describe('When the repeate confirm', function () {
-        beforeEach(async function () {
-          await this.trade.confirm(data, { from: account1 });
-        });
-
-        it('reverts', async function () {
-          // const { receipt } = await this.trade.confirm(data, {from: account1});
-          // expect(receipt.logs.filter(({ event }) => event === 'Confirmation').length).to.be.equal(0);
-          await expectRevert(
-            this.trade.confirm(data, { from: account1 }),
-            'VIV1402',
-          );
-        });
-      });
-    });
-
-    describe('When the token is erc20 address', function () {
-      beforeEach(async function () {
-        await this.erc20.transferInternal(owner, this.trade.address, tradeAmount);
-        await this.trade.execute(other, tradeAmount, this.erc20.address, data, { from: owner, value: tradeAmount });
-      });
-
-      describe('When the first confirm', function () {
-        it('emit a Confirmation event', async function () {
-          expectEvent(
-            await this.trade.confirm(data, { from: account1 }),
-            'Confirmation',
-            { member: account1, operation: operation },
-          );
-        });
-      });
-
-      describe('When the last confirm', function () {
-        beforeEach(async function () {
-          await this.trade.confirm(data, { from: account1 });
-        });
-
-        it('emit a MultiTransact event', async function () {
-          expectEvent(
-            await this.trade.confirm(data, { from: account2 }),
-            'MultiTransact',
-            { member: account2, operation: operation, value: tradeAmount, to: other, data: data },
-          );
-        });
-      });
-
-      describe('When the repeate confirm', function () {
-        beforeEach(async function () {
-          await this.trade.confirm(data, { from: account1 });
-        });
-
-        it('reverts', async function () {
-          // const { receipt } = await this.trade.confirm(data, {from: account1});
-          // expect(receipt.logs.filter(({ event }) => event === 'Confirmation').length).to.be.equal(0);
-          await expectRevert(
-            this.trade.confirm(data, { from: account1 }),
-            'VIV1402',
-          );
+        describe('Vote a proposal', function () {
+          it('emits a execution event', async function () {
+            expectEvent(
+              await this.trade.vote(proposalId, {from: account2}),
+              'Execution',
+              { proposalId: proposalId },
+            );
+          });
         });
       });
     });
   });
 
-
-  describe('isMember', function () {
-    describe('When the request address is not member', function () {
-      it('return false', async function () {
-        expect(await this.trade.isMember(other)).to.be.equal(false);
-      });
-    });
-
-    describe('When the request address is not member', function () {
-      it('return true', async function () {
-        expect(await this.trade.isMember(account1)).to.be.equal(true);
-      });
-    });
-  });
-
-  describe('hasConfirmed', function () {
-    describe('When the request is not confirmed', function () {
-      it('return false', async function () {
-        expect(await this.trade.hasConfirmed(owner, data)).to.be.equal(false);
-      });
-    });
-
-    describe('When the request is confirmed', function () {
-      beforeEach(async function () {
-        await this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner, value: tradeAmount });
-      });
-
-      it('return true', async function () {
-        expect(await this.trade.hasConfirmed(owner, data)).to.be.equal(true);
-      });
-    });
-  });
-
-  describe('numberOfMembers', function () {
-    it('return 4', async function () {
-      expect(await this.trade.numberOfMembers()).to.be.bignumber.equal(new BN(4));
-    });
-  });
-
-  describe('numberOfThreshold', function () {
-    it('return 3', async function () {
-      expect(await this.trade.numberOfThreshold()).to.be.bignumber.equal(new BN(3));
-    });
-  });
-
-  describe('getMembers', function () {
-    it('return 4', async function () {
-      const owners = await this.trade.getMembers();
-      expect(owners.length).to.be.equal(4);
-    });
-  });
-
-  describe('getConfirm', function () {
-    const getValue = ({ 0: result, 1: value }) => ({ 0: result.toString(), 1: value.filter(v => v !== ZERO_ADDRESS) });
-
-    describe('When the request is not confirmed', function () {
-      it('no confirmed', async function () {
-        const actual = getValue(await this.trade.getConfirm(data));
-        const expected = getValue({ 0: new BN(0), 1: [] });
-        expect(actual).to.deep.equal(expected);
-      });
-    });
-
-    describe('When the request is confirmed', function () {
-      beforeEach(async function () {
-        await this.trade.execute(other, tradeAmount, ZERO_ADDRESS, data, { from: owner, value: tradeAmount });
-      });
-
-      it('one confrmed', async function () {
-        const actual = getValue(await this.trade.getConfirm(data));
-        const expected = getValue({ 0: new BN(1), 1: ['0x16DAe577216FD28948Df33bb1cE9c8Cf658fC88c'] });
-        expect(actual).to.deep.equal(expected);
-      });
-    });
-  });
 });

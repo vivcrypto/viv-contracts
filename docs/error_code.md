@@ -35,6 +35,9 @@
 | viv-multi-sign         | VIV1403 | 未确认不能撤销。              | Unconfirmed cannot be revoked.                                                             |
 | viv-multi-sign         | VIV1404 | 最大成员人数不能超过10人。        | Maximum number of members cannot exceed 10.                                                |
 | viv-multi-sign         | VIV1405 | 地址不能为空。               | address can not be zero address.                                                           |
+| viv-multi-sign         | VIV1406 | 交易不存在。               | The trade is not exists.                                                           |
+| viv-multi-sign         | VIV1407 | 未确认过当前交易。               | Do not confirm this transaction.                                                           |
+| viv-multi-sign         | VIV1408 | 当前交易已经执行过。               | The transaction has been done.                                                           |
 | viv-trade-normal       | VIV5001 | 卖家不能为空。               | The seller can't be null.                                                                  |
 | viv-trade-normal       | VIV5002 | 平台不能为空。               | The platform can't be null.                                                                |
 | viv-trade-normal       | VIV5003 | 担保人不能为空。              | The guarantor can't be null.                                                               |
