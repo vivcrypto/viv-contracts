@@ -13,6 +13,7 @@
     "@openzeppelin/contracts": "^4.5.0",
     "@openzeppelin/docs-utils": "^0.1.0",
     "@openzeppelin/test-helpers": "^0.5.15",
+    "@openzeppelin/hardhat-upgrades": 
     "chai": "^4.3.6",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
