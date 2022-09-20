@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.4;
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import "@openzeppelin/contracts/utils/Address.sol";
 import "@openzeppelin/contracts/access/AccessControl.sol";
@@ -20,6 +20,8 @@ contract VivWithdraw is AccessControl {
         _setRoleAdmin(WITHDRAW_ADMIN_ROLE, WITHDRAW_ADMIN_ROLE);
         _setupRole(WITHDRAW_ADMIN_ROLE, address(_timelock));
     }
+
+    receive() external payable {}
 
     /// @dev Transfer
     /// @param to Target address.

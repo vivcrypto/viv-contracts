@@ -1,4 +1,4 @@
 {
     "solidity.defaultCompiler": "localFile",
-    "solidity.compileUsingLocalVersion": "d:\\workspace-viv\\github\\viv-contracts\\soljson-v0.8.4.js"
+    "solidity.enabledAsYouTypeCompilationErrorCheck": true
 }

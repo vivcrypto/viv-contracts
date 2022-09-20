@@ -12,8 +12,8 @@
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@openzeppelin/contracts": "^4.5.0",
     "@openzeppelin/docs-utils": "^0.1.0",
+    "@openzeppelin/hardhat-upgrades": "^1.20.0",
     "@openzeppelin/test-helpers": "^0.5.15",
-    "@openzeppelin/hardhat-upgrades": 
     "chai": "^4.3.6",
     "eslint": "^7.32.0",
     "eslint-config-standard": "^16.0.3",
@@ -25,7 +25,8 @@
     "ethereumjs-util": "^7.1.4",
     "ethereumjs-wallet": "^1.0.2",
     "graphlib": "^2.1.8",
-    "hardhat": "^2.9.2",
+    "hardhat": "^2.11.2",
+    "hardhat-contract-sizer": "^2.6.1",
     "hardhat-gas-reporter": "^1.0.8",
     "keccak256": "^1.0.6",
     "lodash.startcase": "^4.4.0",
@@ -62,7 +63,8 @@
     "version": "scripts/release/version.sh",
     "test": "hardhat test",
     "gas-report": "env ENABLE_GAS_REPORT=true npm run test",
-    "slither": "npm run clean && slither . --detect reentrancy-eth,reentrancy-no-eth,reentrancy-unlimited-gas"
+    "slither": "npm run clean && slither . --detect reentrancy-eth,reentrancy-no-eth,reentrancy-unlimited-gas",
+    "sizer": "hardhat size-contracts"
   },
   "repository": {
     "type": "git",

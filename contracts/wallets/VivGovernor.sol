@@ -1,31 +1,21 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.4;
+pragma solidity 0.8.4;
 
 import "@openzeppelin/contracts/governance/Governor.sol";
 import "@openzeppelin/contracts/governance/compatibility/GovernorCompatibilityBravo.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotes.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorVotesQuorumFraction.sol";
 import "@openzeppelin/contracts/governance/extensions/GovernorTimelockControl.sol";
+import "@openzeppelin/contracts/governance/extensions/GovernorSettings.sol";
 
-contract VivGovernor is Governor, GovernorCompatibilityBravo, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
-    constructor(IVotes _token, TimelockController _timelock)
+contract VivGovernor is Governor, GovernorSettings, GovernorCompatibilityBravo, GovernorVotes, GovernorVotesQuorumFraction, GovernorTimelockControl {
+    constructor(IVotes _token, TimelockController _timelock, uint256 _votingDelay, uint256 _votingPeriod)
         Governor("VivGovernor")
         GovernorVotes(_token)
         GovernorVotesQuorumFraction(4)
         GovernorTimelockControl(_timelock)
+        GovernorSettings(_votingDelay, _votingPeriod, 0)
     {}
-
-    function votingDelay() public pure override returns (uint256) {
-        return 6575; // 1 day
-    }
-
-    function votingPeriod() public pure override returns (uint256) {
-        return 46027; // 1 week
-    }
-
-    function proposalThreshold() public pure override returns (uint256) {
-        return 0;
-    }
 
     // The functions below are overrides required by Solidity.
 
@@ -54,6 +44,10 @@ contract VivGovernor is Governor, GovernorCompatibilityBravo, GovernorVotes, Gov
         returns (ProposalState)
     {
         return super.state(proposalId);
+    }
+
+    function proposalThreshold() public view override(Governor, GovernorSettings) returns (uint256) {
+        return super.proposalThreshold();
     }
 
     function propose(address[] memory targets, uint256[] memory values, bytes[] memory calldatas, string memory description)

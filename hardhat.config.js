@@ -43,6 +43,9 @@ const argv = require('yargs/yargs')()
   .argv;
 
 require('@nomiclabs/hardhat-truffle5');
+require('@nomiclabs/hardhat-ethers');
+require("@nomiclabs/hardhat-etherscan");
+require('hardhat-contract-sizer');
 
 if (argv.enableGasReport) {
   require('hardhat-gas-reporter');
@@ -53,6 +56,9 @@ for (const f of fs.readdirSync(path.join(__dirname, 'hardhat'))) {
 }
 
 const withOptimizations = argv.enableGasReport || argv.compileMode === 'production';
+const ETHERSCAN_API_KEY="KEY";
+const ALCHEMY_API_KEY = "KEY";
+const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
 
 /**
  * @type import('hardhat/config').HardhatUserConfig
@@ -62,10 +68,13 @@ module.exports = {
     version: argv.compiler,
     settings: {
       optimizer: {
-        enabled: withOptimizations,
-        runs: 200,
+        enabled: true,
+        runs: 1,
       },
     },
+  },
+  etherscan: {
+    apiKey: ETHERSCAN_API_KEY,
   },
   networks: {
     hardhat: {
@@ -115,15 +124,26 @@ module.exports = {
 
       ],
     },
+    goerli: {
+      url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
+      accounts: [GOERLI_PRIVATE_KEY],
+    },
   },
   gasReporter: {
     currency: 'USD',
     outputFile: argv.ci ? 'gas-report.txt' : undefined,
     coinmarketcap: argv.coinmarketcap,
   },
+  contractSizer: {
+    alphaSort: true,
+    runOnCompile: true,
+    disambiguatePaths: false,
+  }
 };
 
 if (argv.coverage) {
   require('solidity-coverage');
   module.exports.networks.hardhat.initialBaseFeePerGas = 0;
 }
+
+
