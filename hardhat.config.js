@@ -60,6 +60,7 @@ const ETHERSCAN_API_KEY="KEY";
 const ALCHEMY_API_KEY = "KEY";
 const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
 
+
 /**
  * @type import('hardhat/config').HardhatUserConfig
  */

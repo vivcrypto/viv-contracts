@@ -1,11 +1,11 @@
-const { ethers, upgrades } = require("hardhat");
+const hre = require("hardhat");
 
 async function main() {
-    const TimelockController = await ethers.getContractFactory("TimelockController");
-    const timelock = await TimelockController.deploy(3, [], []);
+    const TimelockController = await hre.ethers.getContractFactory("TimelockController");
+    const timelock = await TimelockController.deploy(2880, [], []);
     await timelock.deployed();
 
-    console.log('Governor -> deployed to address:', timelock.address);
+    console.log('TimelockController -> deployed to address:', timelock.address);
     console.log(process.env.HARDHAT_NETWORK);
 
     if (process.env.HARDHAT_NETWORK != 'localhost') {
@@ -15,10 +15,10 @@ async function main() {
         });
         console.log('Verifying...\n');
 
-        await timelock.run('verify:verify', {
+        await hre.run('verify:verify', {
             address: timelock.address,
-            constructorArguments: [3, [], []],
-            contract: '@openzepplin/contracts/governance/TimelockController.sol:TimelockController'
+            constructorArguments: [2880, [], []],
+            contract: '@openzeppelin/contracts/governance/TimelockController.sol:TimelockController'
         });
     }
 }

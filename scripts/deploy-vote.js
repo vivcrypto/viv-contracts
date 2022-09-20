@@ -1,11 +1,11 @@
-const { ethers, upgrades } = require("hardhat");
+const hre = require("hardhat");
 
 async function main() {
-    const VivVote = await ethers.getContractFactory("VivVote");
+    const VivVote = await hre.ethers.getContractFactory("VivVote");
     const vote = await VivVote.deploy();
     await vote.deployed();
 
-    console.log('Governor -> deployed to address:', vote.address);
+    console.log('VivVote -> deployed to address:', vote.address);
     console.log(process.env.HARDHAT_NETWORK);
 
     if (process.env.HARDHAT_NETWORK != 'localhost') {
@@ -15,7 +15,7 @@ async function main() {
         });
         console.log('Verifying...\n');
 
-        await ethers.run('verify:verify', {
+        await hre.run('verify:verify', {
             address: vote.address,
             contract: 'contracts/wallets/VivVote.sol:VivVote'
         });

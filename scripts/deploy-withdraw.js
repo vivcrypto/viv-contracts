@@ -1,12 +1,12 @@
-const { ethers, upgrades } = require("hardhat");
+const hre = require("hardhat");
 
 async function main() {
-    const VivWithdraw = await ethers.getContractFactory("VivWithdraw");
-    // 0x1f776206ae44940e3Fd598a7008E28c46C8db7Bc is timelock
-    const withdraw = await VivWithdraw.deploy("0x1f776206ae44940e3Fd598a7008E28c46C8db7Bc");
+    const VivWithdraw = await hre.ethers.getContractFactory("VivWithdraw");
+    // 0x77FA223a12029Df5c655B0e8a455d4B542D71C94 is timelock
+    const withdraw = await VivWithdraw.deploy("0x77FA223a12029Df5c655B0e8a455d4B542D71C94");
     await withdraw.deployed();
 
-    console.log('Governor -> deployed to address:', withdraw.address);
+    console.log('VivWithdraw -> deployed to address:', withdraw.address);
     console.log(process.env.HARDHAT_NETWORK);
 
     if (process.env.HARDHAT_NETWORK != 'localhost') {
@@ -16,9 +16,9 @@ async function main() {
         });
         console.log('Verifying...\n');
 
-        await ethers.run('verify:verify', {
+        await hre.run('verify:verify', {
             address: withdraw.address,
-            constructorArguments: ["0x1f776206ae44940e3Fd598a7008E28c46C8db7Bc"],
+            constructorArguments: ["0x77FA223a12029Df5c655B0e8a455d4B542D71C94"],
             contract: 'contracts/wallets/VivWithdraw.sol:VivWithdraw'
         });
     }
