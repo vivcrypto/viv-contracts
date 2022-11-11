@@ -56,9 +56,12 @@ for (const f of fs.readdirSync(path.join(__dirname, 'hardhat'))) {
 }
 
 const withOptimizations = argv.enableGasReport || argv.compileMode === 'production';
-const ETHERSCAN_API_KEY="KEY";
-const ALCHEMY_API_KEY = "KEY";
-const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
+// const ETHERSCAN_API_KEY="KEY";
+// const ALCHEMY_API_KEY = "KEY";
+// const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
+const ETHERSCAN_API_KEY="HIXA5VZIZ6KEIE8V8REPXZ3SC9QT4KFCW7";
+const ALCHEMY_API_KEY = "PhNq4g_UBS04XgMQWNTAvoN63ChVmSg9";
+const GOERLI_PRIVATE_KEY = "0xf95816c196aec67bdae2f72005d4b11203162c72ed4e3833958e052df8a32edc";
 
 
 /**
@@ -129,6 +132,10 @@ module.exports = {
       url: `https://eth-goerli.alchemyapi.io/v2/${ALCHEMY_API_KEY}`,
       accounts: [GOERLI_PRIVATE_KEY],
     },
+    main: {
+      url: 'https://eth-mainnet.g.alchemy.com/v2/RUAoSz-dmf3VQWF0CNwlGO86WR1GA_HR',
+      accounts: ['0x2378941b602818b755f3825a0dc457f8a437910f5f71cc8cafc4bd0445a7b4cf'],
+    }
   },
   gasReporter: {
     currency: 'USD',

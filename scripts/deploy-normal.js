@@ -1,12 +1,11 @@
 const hre = require("hardhat");
 
 async function main() {
-    const TIMELOCK_ADDRESS = '0x8A1eEAAc3b0c97Dcfc4cea98de8B2882b135806e';
-    const VivWithdraw = await hre.ethers.getContractFactory("VivWithdraw");
-    const withdraw = await VivWithdraw.deploy(TIMELOCK_ADDRESS);
-    await withdraw.deployed();
+    const VivNormal = await hre.ethers.getContractFactory("VivNormal");
+    const normal = await VivNormal.deploy();
+    await normal.deployed();
 
-    console.log('VivWithdraw -> deployed to address:', withdraw.address);
+    console.log('VivNormal -> deployed to address:', normal.address);
     console.log(process.env.HARDHAT_NETWORK);
 
     if (process.env.HARDHAT_NETWORK != 'localhost') {
@@ -17,9 +16,8 @@ async function main() {
         console.log('Verifying...\n');
 
         await hre.run('verify:verify', {
-            address: withdraw.address,
-            constructorArguments: [TIMELOCK_ADDRESS],
-            contract: 'contracts/wallets/VivWithdraw.sol:VivWithdraw'
+            address: normal.address,
+            contract: 'contracts/trades/VivNormal.sol:VivNormal'
         });
     }
 }

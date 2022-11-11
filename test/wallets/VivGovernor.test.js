@@ -46,6 +46,9 @@ contract('VivGovernor', function (accounts) {
     await web3.eth.sendTransaction({ from: owner, to: this.receiver.address, value });
 
     // normal setup: governor is proposer, everyone is executor, timelock is its own admin
+    console.log(TIMELOCK_ADMIN_ROLE);
+    console.log(PROPOSER_ROLE);
+    console.log(EXECUTOR_ROLE);
     await this.timelock.grantRole(PROPOSER_ROLE, this.mock.address);
     await this.timelock.grantRole(EXECUTOR_ROLE, ZERO_ADDRESS);
     await this.timelock.revokeRole(TIMELOCK_ADMIN_ROLE, deployer);
