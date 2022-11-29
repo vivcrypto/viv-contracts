@@ -8,3 +8,4 @@ extendEnvironment(env => {
     contract(name, accounts => body(accounts.slice(1)));
   };
 });
+

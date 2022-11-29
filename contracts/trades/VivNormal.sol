@@ -144,3 +144,4 @@ contract VivNormal is Token {
         _transfer(trade.token, msg.sender, available - fee);
     }
 }
+
