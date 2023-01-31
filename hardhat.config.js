@@ -56,12 +56,9 @@ for (const f of fs.readdirSync(path.join(__dirname, 'hardhat'))) {
 }
 
 const withOptimizations = argv.enableGasReport || argv.compileMode === 'production';
-// const ETHERSCAN_API_KEY="KEY";
-// const ALCHEMY_API_KEY = "KEY";
-// const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
-const ETHERSCAN_API_KEY="HIXA5VZIZ6KEIE8V8REPXZ3SC9QT4KFCW7";
-const ALCHEMY_API_KEY = "PhNq4g_UBS04XgMQWNTAvoN63ChVmSg9";
-const GOERLI_PRIVATE_KEY = "0xf95816c196aec67bdae2f72005d4b11203162c72ed4e3833958e052df8a32edc";
+const ETHERSCAN_API_KEY="KEY";
+const ALCHEMY_API_KEY = "KEY";
+const GOERLI_PRIVATE_KEY = "YOUR GOERLI PRIVATE KEY";
 
 
 /**
